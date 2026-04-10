@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Milk App – Premium Order</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #5c3d2e;
+    --accent: #c8832a;
+    --accent-light: #fef3e2;
+    --bg: #fdf6ec;
+    --white: #ffffff;
+    --text-main: #2b1d0e;
+    --text-muted: #8d7a6a;
+    --sage: #7a9e7e;
+    --sage-bg: #f1f8f1;
+    --sky: #4a90e2;
+    --sky-bg: #f0f7ff;
+    --rose: #c0736a;
+    --border: #e8d5c0;
+    --shadow: 0 10px 30px rgba(92, 61, 46, 0.08);
+    --radius: 18px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+  body { background: var(--bg); color: var(--text-main); line-height: 1.6; }
+
+  /* NAVBAR */
+  .navbar {
+    height: 72px; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2rem; border-bottom: 1.5px solid var(--border);
+    position: sticky; top: 0; z-index: 1000;
+  }
+  .brand { font-size: 1.5rem; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; }
+  .brand span { color: var(--accent); }
+  
+  .nav-links { display: flex; align-items: center; gap: 1rem; }
+  .btn-nav { text-decoration: none; padding: 10px 20px; border-radius: 12px; font-weight: 600; font-size: 0.9rem; transition: 0.3s; }
+  .btn-primary { background: var(--accent); color: white; box-shadow: 0 4px 12px rgba(200, 131, 42, 0.3); }
+
+  /* LAYOUT */
+  .page-layout {
+    display: grid; grid-template-columns: 1fr 420px; gap: 2rem;
+    max-width: 1400px; margin: 2rem auto; padding: 0 2rem;
+  }
+
+  /* PRODUCTS */
+  .category-tabs { display: flex; gap: 0.75rem; overflow-x: auto; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+  .cat-tab {
+    padding: 12px 20px; background: var(--white); border: 1.5px solid var(--border);
+    border-radius: 50px; cursor: pointer; white-space: nowrap; font-weight: 600;
+    display: flex; align-items: center; gap: 8px; transition: 0.3s; color: var(--text-muted);
+  }
+  .cat-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
+  .product-card {
+    background: var(--white); border-radius: var(--radius); padding: 1.25rem;
+    border: 1.5px solid var(--border); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative; cursor: pointer;
+  }
+  .product-card:hover:not(.disabled-card) { transform: translateY(-8px); border-color: var(--accent); box-shadow: var(--shadow); }
+  
+  .card-badge {
+    position: absolute; top: 12px; right: 12px; font-size: 0.65rem; font-weight: 800;
+    padding: 4px 10px; border-radius: 50px; background: var(--sage-bg); color: var(--sage);
+  }
+
+  .card-img { font-size: 3.5rem; text-align: center; margin: 1rem 0; }
+  .card-name { font-weight: 700; color: var(--primary); }
+  .card-footer-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+  .card-price { font-weight: 800; color: var(--accent); }
+
+  .add-btn {
+    width: 36px; height: 36px; border-radius: 10px; border: none;
+    background: var(--accent-light); color: var(--accent); font-weight: 700; cursor: pointer;
+  }
+
+  /* ORDER PANEL */
+  .order-panel {
+    background: var(--white); border-radius: var(--radius); border: 1.5px solid var(--border);
+    height: calc(100vh - 120px); position: sticky; top: 100px;
+    display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow);
+  }
+  .panel-header { padding: 1.5rem; border-bottom: 1.5px solid var(--border); }
+  .cart-items { flex: 1; overflow-y: auto; padding: 1rem 1.5rem; }
+  .cart-item {
+    display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid var(--bg);
+  }
+
+  .qty-controls { display: flex; align-items: center; gap: 8px; background: var(--bg); padding: 4px; border-radius: 8px; }
+  .qty-btn { border: none; width: 24px; height: 24px; border-radius: 6px; cursor: pointer; font-weight: 800; background: white; }
+
+  /* PAYMENT CONTROLS */
+  .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+  .btn-action {
+    padding: 12px; border-radius: 12px; border: 1.5px solid var(--border);
+    font-weight: 700; cursor: pointer; transition: 0.2s;
+    display: flex; flex-direction: column; align-items: center; gap: 5px; background: white;
+  }
+  .btn-action:hover { border-color: var(--accent); background: var(--accent-light); }
+
+  .btn-print {
+    width: 100%; background: var(--primary); color: white; border: none;
+    padding: 16px; border-radius: 12px; font-weight: 800; cursor: pointer; margin-top: 10px;
+  }
+
+  .lang-switch { display: flex; gap: 0.5rem; margin-left: 1rem; }
+  .lang-btn {
+    border: 1.5px solid var(--border); background: var(--white); color: var(--text-muted);
+    border-radius: 8px; padding: 6px 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer;
+    transition: 0.2s;
+  }
+  .lang-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .lang-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+  @media print {
+    body * { visibility: hidden; }
+    .order-panel, .order-panel * { visibility: visible; }
+    .order-panel { position: absolute; left: 0; top: 0; width: 100%; border: none; }
+    .btn-group, .btn-print, .qty-controls, .btn-clear, .lang-switch { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="navbar">
+  <span class="brand">Milk <span>App</span></span>
+  <nav class="nav-links">
+    <a href="deleveryrc.html" class="btn-nav" style="color: var(--primary)" data-i18n="navDelivery">Delivery</a>
+    <button class="btn-nav btn-primary" data-i18n="navNewOrder">+ New Order</button>
+    <div class="lang-switch">
+      <button class="lang-btn active" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="kh">KH</button>
+    </div>
+  </nav>
+</header>
+
+<div class="page-layout">
+  <section class="products-area">
+    <div class="page-header">
+      <h2 data-i18n="selectMilk">Select Fresh Milk</h2>
+      <p data-i18n="selectSub">Build your order by selecting products below</p>
+    </div>
+
+    <div class="category-tabs" id="categoryTabs">
+      <button class="cat-tab active" data-cat="all" data-i18n="catAll">🥛 All</button>
+      <button class="cat-tab" data-cat="fresh" data-i18n="catFresh">🌿 Fresh</button>
+      <button class="cat-tab" data-cat="flavored" data-i18n="catFlavored">🍫 Flavored</button>
+      <button class="cat-tab" data-cat="yogurt" data-i18n="catYogurt">🫙 Yogurt</button>
+      <button class="cat-tab" data-cat="cheese" data-i18n="catCheese">🧀 Cheese</button>
+      <button class="cat-tab" data-cat="butter" data-i18n="catButter">🧈 Butter</button>
+    </div>
+
+    <div class="product-grid" id="productGrid"></div>
+  </section>
+
+   <aside class="order-panel">
+        <div style="text-align: center; border-bottom: 2px dashed #eee; padding-bottom: 10px;">
+            <h3 style="margin:0" data-i18n="receiptTitle">Official Receipt</h3>
+            <small id="receiptDate" data-i18n="newOrder">New Order</small>
+        </div>
+
+        <div id="cartItems">
+            <p style="text-align:center; color: #ccc; margin-top: 50px;" data-i18n="cartEmpty">Cart is empty</p>
+        </div>
+
+        <div id="orderControls" style="display:none">
+            <div class="order-summary">
+                <div style="display:flex; justify-content:space-between"><span data-i18n="subtotal">Subtotal</span><span id="subtotal">$0.00</span></div>
+                <div style="display:flex; justify-content:space-between; margin: 5px 0;"><span data-i18n="tax">Tax (10%)</span><span id="taxAmt">$0.00</span></div>
+                <div class="total" style="display:flex; justify-content:space-between"><span data-i18n="total">Total</span><span id="grandTotal">$0.00</span></div>
+            </div>
+
+            <button class="btn-action btn-print" id="mainPrintBtn" onclick="handlePrint()" data-i18n="btnPrint">🖨️ PRINT RECEIPT</button>
+            <p id="payStatus" style="text-align:center; font-size:0.8rem; margin-top:10px; color:var(--sage); font-weight:bold;"></p>
+        </div>
+    </aside>
+</div>
+
+
+
+<script>
+const PRODUCTS = [
+  { id:1, name:'Full Cream Milk', cat:'fresh', price:2.50, emoji:'🥛', sub:'1 Liter', badge:'In Stock' },
+  { id:2, name:'Skim Milk', cat:'fresh', price:2.20, emoji:'🥛', sub:'1 Liter', badge:'In Stock' },
+  { id:3, name:'Low Fat Milk', cat:'fresh', price:2.30, emoji:'🥛', sub:'500 ml', badge:'In Stock' },
+  { id:4, name:'Organic Milk', cat:'fresh', price:3.80, emoji:'🌿', sub:'1 Liter', badge:'In Stock' },
+  { id:6, name:'Chocolate Milk', cat:'flavored', price:2.80, emoji:'🍫', sub:'300 ml', badge:'In Stock' },
+  { id:11,name:'Plain Yogurt', cat:'yogurt', price:1.80, emoji:'🫙', sub:'200 g', badge:'In Stock' },
+  { id:15,name:'Cheddar Cheese', cat:'cheese', price:5.50, emoji:'🧀', sub:'200 g', badge:'In Stock' },
+  { id:18,name:'Salted Butter', cat:'butter', price:3.50, emoji:'🧈', sub:'200 g', badge:'In Stock' },
+];
+
+let cart = {};
+let activeCategory = 'all';
+
+const TRANSLATIONS = {
+  en: {
+    navDelivery: 'Delivery',
+    navNewOrder: '+ New Order',
+    selectMilk: 'Select Fresh Milk',
+    selectSub: 'Build your order by selecting products below',
+    catAll: '🥛 All',
+    catFresh: '🌿 Fresh',
+    catFlavored: '🍫 Flavored',
+    catYogurt: '🫙 Yogurt',
+    catCheese: '🧀 Cheese',
+    catButter: '🧈 Butter',
+    receiptTitle: 'Official Receipt',
+    newOrder: 'New Order',
+    cartEmpty: 'Cart is empty',
+    basketEmpty: 'Your basket is empty.',
+    subtotal: 'Subtotal',
+    tax: 'Tax (10%)',
+    total: 'Total',
+    btnPrint: '🖨️ PRINT RECEIPT',
+    itemsSelected: 'items selected',
+    customer: 'Customer'
+  },
+  kh: {
+    navDelivery: 'ការដឹកជញ្ជូន',
+    navNewOrder: '+ ការកុម្ម៉ង់ថ្មី',
+    selectMilk: 'ជ្រើសរើសទឹកដោះគោស្រស់',
+    selectSub: 'រៀបចំការកម្ម៉ង់របស់អ្នកដោយជ្រើសរើសផលិតផលខាងក្រោម',
+    catAll: '🥛 ទាំងអស់',
+    catFresh: '🌿 ស្រស់',
+    catFlavored: '🍫 មានរសជាតិ',
+    catYogurt: '🫙 យ៉ាអួ',
+    catCheese: '🧀 ឈីស',
+    catButter: '🧈 ប៊ឺ',
+    receiptTitle: 'វិក្កយបត្រផ្លូវការ',
+    newOrder: 'ការកុម្ម៉ង់ថ្មី',
+    cartEmpty: 'រទេះទទេ',
+    basketEmpty: 'កន្ត្រករបស់អ្នកទទេ',
+    subtotal: 'សរុបរង',
+    tax: 'ពន្ធ (10%)',
+    total: 'សរុបរួម',
+    btnPrint: '🖨️ បោះពុម្ពវិក្កយបត្រ',
+    itemsSelected: 'មុខទំនិញត្រូវបានជ្រើសរើស',
+    customer: 'អតិថិជន'
+  }
+};
+
+let currentLang = localStorage.getItem('milkLang') || 'en';
+
+function applyLanguage(lang) {
+  currentLang = lang;
+  localStorage.setItem('milkLang', lang);
+  
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (TRANSLATIONS[lang][key]) {
+      el.textContent = TRANSLATIONS[lang][key];
+    }
+  });
+
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
+
+  renderProducts();
+  renderCart();
+}
+
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => applyLanguage(btn.dataset.lang));
+});
+
+function renderProducts() {
+  const grid = document.getElementById('productGrid');
+  const filtered = activeCategory === 'all' ? PRODUCTS : PRODUCTS.filter(p => p.cat === activeCategory);
+  grid.innerHTML = filtered.map(p => `
+    <div class="product-card" onclick="addToCart(${p.id})">
+      <span class="card-badge">${p.badge}</span>
+      <div class="card-img">${p.emoji}</div>
+      <div class="card-name">${p.name}</div>
+      <div class="card-footer-row">
+        <span class="card-price">$${p.price.toFixed(2)}</span>
+        <button class="add-btn">+</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addToCart(id) {
+  cart[id] = (cart[id] || 0) + 1;
+  renderCart();
+}
+
+function changeQty(id, delta) {
+  cart[id] = (cart[id] || 0) + delta;
+  if (cart[id] <= 0) delete cart[id];
+  renderCart();
+}
+
+function setPayment(method) {
+  document.getElementById('payStatus').textContent = (currentLang === 'kh' ? "បានជ្រើសរើស: " : "Selected: ") + method;
+}
+
+function renderCart() {
+  const keys = Object.keys(cart).map(Number);
+  const cartEl = document.getElementById('cartItems');
+  const controls = document.getElementById('orderControls');
+
+  if (keys.length === 0) {
+    cartEl.innerHTML = `<div class="cart-empty" style="text-align:center; padding-top: 50px; color: var(--text-muted);"><div style="font-size: 3rem; opacity: 0.2;">🛒</div><p>${TRANSLATIONS[currentLang].basketEmpty}</p></div>`;
+    controls.style.display = 'none';
+    return;
+  }
+
+  controls.style.display = 'block';
+  cartEl.innerHTML = ''; 
+  
+  let subtotal = 0;
+
+  keys.forEach(id => {
+    const p = PRODUCTS.find(x => x.id === id);
+    const qty = cart[id];
+    subtotal += p.price * qty;
+
+    const div = document.createElement('div');
+    div.className = 'cart-item';
+    div.innerHTML = `
+      <span class="item-emoji">${p.emoji}</span>
+      <div class="item-info"><div class="item-name">${p.name}</div></div>
+      <div class="qty-controls">
+        <button class="qty-btn" onclick="event.stopPropagation(); changeQty(${id},-1)">−</button>
+        <span class="qty-num">${qty}</span>
+        <button class="qty-btn" onclick="event.stopPropagation(); changeQty(${id},1)">+</button>
+      </div>
+      <span class="item-total">$${(p.price * qty).toFixed(2)}</span>
+    `;
+    cartEl.appendChild(div);
+  });
+
+  const tax = subtotal * 0.1;
+  document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+  document.getElementById('taxAmt').textContent = `$${tax.toFixed(2)}`;
+  document.getElementById('grandTotal').textContent = `$${(subtotal + tax).toFixed(2)}`;
+}
+
+function clearCart() {
+  const msg = currentLang === 'kh' ? "សម្អាតការកុម្ម៉ង់បច្ចុប្បន្ន?" : "Clear current order?";
+  if(confirm(msg)) {
+    cart = {};
+    const cName = document.getElementById('customerName');
+    if (cName) cName.value = '';
+    document.getElementById('payStatus').textContent = '';
+    renderCart();
+  }
+}
+
+function handlePrint() {
+  const cName = document.getElementById('customerName');
+  const name = cName ? cName.value : (currentLang === 'kh' ? "ភ្ញៀវ" : "Guest");
+  const label = TRANSLATIONS[currentLang].customer;
+  const time = new Date().toLocaleString();
+  
+  document.getElementById('receiptDate').textContent = `${label}: ${name} | ${time}`;
+  window.print();
+}
+
+document.querySelectorAll('.cat-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    activeCategory = tab.dataset.cat;
+    renderProducts();
+  });
+});
+
+applyLanguage(currentLang);
+</script>
+</body>
+</html>

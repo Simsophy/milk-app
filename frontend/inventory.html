@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Milk App – Inventory</title>
+<style>
+  :root {
+    --cream:#fdf6ec; --ivory:#fff9f2; --milk-white:#ffffff;
+    --warm-brown:#5c3d2e; --caramel:#c8832a; --caramel-light:#f0c27f;
+    --caramel-bg:#fef3e2; --sage:#7a9e7e; --sage-bg:#eaf3eb;
+    --rose:#c0736a; --rose-bg:#fbeae8; --sky:#6a8fc0; --sky-bg:#e8eef8;
+    --text-dark:#2b1d0e; --text-mid:#6b4c38; --text-light:#a68970;
+    --border:#e8d5c0; --nav-h:64px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-dark);}
+
+  nav.topnav{
+    position:sticky;top:0;z-index:200;height:var(--nav-h);
+    background:var(--milk-white);border-bottom:1.5px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 2rem;box-shadow:0 2px 12px rgba(92,61,46,0.07);
+  }
+  .brand{font-family:'Playfair Display',serif;font-size:1.45rem;font-weight:700;color:var(--warm-brown);text-decoration:none;}
+  .brand em{color:var(--caramel);font-style:normal;}
+  .nav-links{display:flex;align-items:center;gap:0.25rem;}
+  .nav-links a{
+    text-decoration:none;font-size:0.875rem;font-weight:500;
+    color:var(--text-mid);padding:0.4rem 0.9rem;border-radius:8px;
+    transition:background 0.18s,color 0.18s;
+  }
+  .nav-links a:hover{background:var(--cream);color:var(--warm-brown);}
+  .nav-links a.active{background:var(--caramel);color:#fff;}
+  .nav-links a.nav-new{background:var(--caramel);color:#fff;box-shadow:0 3px 10px rgba(200,131,42,0.3);}
+  .nav-links a.nav-new:hover{background:var(--warm-brown);}
+  .nav-links a.nav-logout{color:var(--rose);border:1.5px solid var(--border);}
+  .nav-links a.nav-logout:hover{background:var(--rose-bg);border-color:var(--rose);}
+  .nav-divider{width:1px;height:20px;background:var(--border);margin:0 0.3rem;}
+  .lang-switch{display:flex;gap:0.3rem;margin-left:0.3rem;}
+  .lang-btn{border:1.5px solid var(--border);background:var(--milk-white);color:var(--text-mid);border-radius:8px;padding:0.2rem 0.5rem;font-size:0.72rem;font-weight:700;cursor:pointer;}
+  .lang-btn.active{background:var(--caramel);border-color:var(--caramel);color:#fff;}
+
+  .page{max-width:1200px;margin:0 auto;padding:2.5rem 2rem;}
+  .page-title{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--warm-brown);margin-bottom:0.25rem;}
+  .page-sub{color:var(--text-light);font-size:0.9rem;margin-bottom:2rem;}
+
+  .toolbar{ display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap; }
+  .search-box{ flex:1;min-width:200px;position:relative; }
+  .search-box input{
+    width:100%;padding:0.55rem 1rem 0.55rem 2.4rem;
+    border:1.5px solid var(--border);border-radius:10px;
+    background:var(--milk-white);font-family:inherit;font-size:0.875rem;
+    color:var(--text-dark);outline:none;transition:border-color 0.2s;
+  }
+  .search-box input:focus{border-color:var(--caramel);}
+  .search-box::before{content:'🔍';position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);font-size:0.85rem;}
+  .filter-select{
+    padding:0.55rem 1rem;border:1.5px solid var(--border);border-radius:10px;
+    background:var(--milk-white);font-family:inherit;font-size:0.875rem;
+    color:var(--text-mid);outline:none;cursor:pointer;
+  }
+  .btn-add{
+    padding:0.55rem 1.2rem;border-radius:10px;border:none;
+    background:var(--caramel);color:#fff;font-family:inherit;font-size:0.875rem;font-weight:600;
+    cursor:pointer;display:flex;align-items:center;gap:0.4rem;
+    box-shadow:0 3px 10px rgba(200,131,42,0.3);transition:background 0.2s;
+  }
+  .btn-add:hover{background:var(--warm-brown);}
+
+  .inv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.75rem;}
+  .inv-stat{
+    background:var(--milk-white);border-radius:12px;border:1.5px solid var(--border);
+    padding:1rem 1.25rem;display:flex;align-items:center;gap:0.85rem;
+  }
+  .is-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+  .is-label{font-size:0.75rem;color:var(--text-light);font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+  .is-value{font-size:1.3rem;font-weight:700;color:var(--text-dark);}
+
+  .table-card{ background:var(--milk-white);border-radius:16px;border:1.5px solid var(--border); overflow:hidden; }
+  table{width:100%;border-collapse:collapse;}
+  thead{background:var(--ivory);}
+  thead th{
+    padding:0.9rem 1.25rem;font-size:0.75rem;font-weight:600;
+    color:var(--text-light);text-transform:uppercase;letter-spacing:.4px;
+    text-align:left;border-bottom:1.5px solid var(--border);
+  }
+  tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s;}
+  tbody tr:last-child{border-bottom:none;}
+  tbody tr:hover{background:var(--cream);}
+  tbody td{padding:0.9rem 1.25rem;font-size:0.85rem;color:var(--text-dark);vertical-align:middle;}
+
+  .prod-cell{display:flex;align-items:center;gap:0.65rem;}
+  .prod-emoji{font-size:1.4rem;}
+  .prod-name{font-weight:600;font-size:0.875rem;}
+  .prod-cat{font-size:0.72rem;color:var(--text-light);}
+
+  .stock-bar{width:80px;height:6px;background:var(--border);border-radius:10px;overflow:hidden;margin-top:3px;}
+  .stock-fill{height:100%;border-radius:10px;}
+  .stock-num{font-weight:700;font-size:0.875rem;}
+
+  .badge{display:inline-block;padding:3px 10px;border-radius:50px;font-size:0.72rem;font-weight:600;}
+  .badge.in {background:var(--sage-bg);color:var(--sage);}
+  .badge.low {background:var(--caramel-bg);color:var(--caramel);}
+  .badge.out {background:var(--rose-bg);color:var(--rose);}
+
+  .action-btns{display:flex;gap:0.4rem;}
+  .act-btn{
+    padding:4px 12px;border-radius:7px;border:1.5px solid var(--border);
+    background:transparent;font-family:inherit;font-size:0.75rem;font-weight:500;
+    color:var(--text-mid);cursor:pointer;transition:all 0.15s;
+  }
+  .act-btn:hover{border-color:var(--caramel);color:var(--caramel);background:var(--caramel-bg);}
+  .act-btn.danger:hover{border-color:var(--rose);color:var(--rose);background:var(--rose-bg);}
+  .empty-state{text-align:center;padding:3rem;color:var(--text-light);font-size:0.875rem;}
+
+  @media(max-width:900px){.inv-stats{grid-template-columns:repeat(2,1fr);}table{font-size:0.8rem;}}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <a class="brand" href="dashboard.html">Milk <em>App</em></a>
+  <div class="nav-links">
+    <a href="dashboard.html" data-i18n="navDashboard">📊 Dashboard</a>
+    <a href="inventory.html" class="active" data-i18n="navInventory">📦 Inventory</a>
+    <a href="new-order.html" class="nav-new" data-i18n="navNewOrder">＋ New Order</a>
+    <a href="delivery.html" data-i18n="navDelivery">🚚 Delivery</a>
+    <div class="lang-switch" aria-label="Language switch">
+      <button class="lang-btn" type="button" data-lang="en">EN</button>
+      <button class="lang-btn" type="button" data-lang="kh">KH</button>
+    </div>
+    <div class="nav-divider"></div>
+    <a href="login.html" class="nav-logout" data-i18n="navLogout">⏻ Logout</a>
+  </div>
+</nav>
+
+<div class="page">
+  <h1 class="page-title">Inventory</h1>
+  <p class="page-sub">Manage your milk product stock levels.</p>
+
+  <div class="inv-stats">
+    <div class="inv-stat">
+      <div class="is-icon" style="background:var(--sage-bg)">📦</div>
+      <div><div class="is-label">Total Products</div><div class="is-value" id="statTotal">0</div></div>
+    </div>
+    <div class="inv-stat">
+      <div class="is-icon" style="background:var(--caramel-bg)">⚠️</div>
+      <div><div class="is-label">Low Stock</div><div class="is-value" id="statLow">0</div></div>
+    </div>
+    <div class="inv-stat">
+      <div class="is-icon" style="background:var(--rose-bg)">❌</div>
+      <div><div class="is-label">Out of Stock</div><div class="is-value" id="statOut">0</div></div>
+    </div>
+    <div class="inv-stat">
+      <div class="is-icon" style="background:var(--sky-bg)">✅</div>
+      <div><div class="is-label">In Stock</div><div class="is-value" id="statIn">0</div></div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search products…" oninput="renderTable()">
+    </div>
+    <select class="filter-select" id="catFilter" onchange="renderTable()">
+      <option value="">All Categories</option>
+      <option value="fresh">Fresh Milk</option>
+      <option value="flavored">Flavored</option>
+      <option value="yogurt">Yogurt</option>
+      <option value="cheese">Cheese</option>
+      <option value="butter">Butter & Cream</option>
+    </select>
+    <select class="filter-select" id="stockFilter" onchange="renderTable()">
+      <option value="">All Stock</option>
+      <option value="in">In Stock</option>
+      <option value="low">Low Stock</option>
+      <option value="out">Out of Stock</option>
+    </select>
+    <button class="btn-add" onclick="toggleAddForm(true)">＋ Add Product</button>
+  </div>
+
+  <div class="add-product-form" id="addProductForm" style="display:none; margin-bottom:1rem; background:#fff;border:1px solid #e8d5c0;border-radius:12px;padding:1rem;box-shadow:0 2px 10px rgba(0,0,0,0.05);">
+    <div style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:flex-end;">
+      <div style="flex:1;min-width:160px;"><label>Name</label><input type="text" id="newProductName" style="width:100%;padding:0.45rem 0.75rem;border:1.5px solid var(--border);border-radius:8px;" placeholder="e.g. Strawberry Milk"></div>
+      <div style="flex:1;min-width:120px;"><label>Price</label><input type="number" id="newProductPrice" min="0" step="0.01" style="width:100%;padding:0.45rem 0.75rem;border:1.5px solid var(--border);border-radius:8px;" placeholder="2.50"></div>
+      <div style="flex:1;min-width:120px;"><label>Stock</label><input type="number" id="newProductStock" min="0" style="width:100%;padding:0.45rem 0.75rem;border:1.5px solid var(--border);border-radius:8px;" placeholder="100"></div>
+      <div style="flex:1;min-width:150px;"><label>Category</label><input type="text" id="newProductCategory" style="width:100%;padding:0.45rem 0.75rem;border:1.5px solid var(--border);border-radius:8px;" placeholder="Fresh"></div>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+        <button id="submitProductBtn" class="btn-add" type="button" onclick="submitAddProduct()">💾 Save Product</button>
+        <button class="btn-add" type="button" style="background:#ccc;color:#333;" onclick="toggleAddForm(false)">✕ Cancel</button>
+      </div>
+    </div>
+    <p id="addProductMessage" style="margin-top:0.75rem;color:#e94b35;display:none;font-size:0.85rem;"></p>
+  </div>
+
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Category</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="invBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// Use var to avoid "already declared" error with roleControl.js
+var API_BASE = '../backend/routes/api.php';
+let products = JSON.parse(localStorage.getItem('milkProducts') || '[]');
+let editingProductId = null;
+
+const catLabels = {
+  fresh:'Fresh Milk', flavored:'Flavored', yogurt:'Yogurt', cheese:'Cheese', butter:'Butter & Cream',
+  almond:'Almond', oat:'Oat'
+};
+
+function saveProducts() { localStorage.setItem('milkProducts', JSON.stringify(products)); }
+
+function mapDbProduct(p) {
+  return {
+    id: Number(p.id),
+    name: String(p.name),
+    emoji: String(p.emoji || '🥛'),
+    cat: String(p.category || 'fresh').toLowerCase(),
+    price: Number(p.price),
+    stock: Number(p.stock),
+    max: Math.max(100, Number(p.stock) * 2),
+  };
+}
+
+async function fetchProductsFromServer() {
+  try {
+    const response = await fetch(`${API_BASE}?action=products`);
+    const result = await response.json();
+    if (result.success && Array.isArray(result.data)) {
+      products = result.data.map(mapDbProduct);
+      saveProducts();
+      return true;
+    }
+  } catch (error) { console.warn('Fetch failed', error); }
+  return false;
+}
+
+async function initProducts() {
+  const loaded = await fetchProductsFromServer();
+  if (!loaded) {
+    const local = JSON.parse(localStorage.getItem('milkProducts') || '[]');
+    if (local.length > 0) products = local;
+    else {
+      products = [{id:1, name:'Full Cream Milk', emoji:'🥛', cat:'fresh', price:2.50, stock:120, max:200}];
+      saveProducts();
+    }
+  }
+  renderTable();
+  updateStats();
+}
+
+function getStatus(p) {
+  if (p.stock === 0) return 'out';
+  if (p.stock / p.max < 0.2) return 'low';
+  return 'in';
+}
+
+function updateStats() {
+  document.getElementById('statTotal').textContent = products.length;
+  document.getElementById('statLow').textContent = products.filter(p=>getStatus(p)==='low').length;
+  document.getElementById('statOut').textContent = products.filter(p=>getStatus(p)==='out').length;
+  document.getElementById('statIn').textContent = products.filter(p=>getStatus(p)==='in').length;
+}
+
+function renderTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const cat = document.getElementById('catFilter').value;
+  const st = document.getElementById('stockFilter').value;
+
+  let filtered = products.filter(p => {
+    if (q && !p.name.toLowerCase().includes(q)) return false;
+    if (cat && p.cat !== cat) return false;
+    if (st && getStatus(p) !== st) return false;
+    return true;
+  });
+
+  const tbody = document.getElementById('invBody');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">No products found.</div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(p => {
+    const pct = Math.round((p.stock/p.max)*100);
+    const status = getStatus(p);
+    const barColor = {in:'var(--sage)', low:'var(--caramel)', out:'var(--rose)'}[status];
+    return `<tr>
+      <td><div class="prod-cell"><span class="prod-emoji">${p.emoji}</span><div class="prod-name">${p.name}</div></div></td>
+      <td style="color:var(--text-mid)">${catLabels[p.cat] || p.cat}</td>
+      <td style="font-weight:700;color:var(--caramel)">$${p.price.toFixed(2)}</td>
+      <td><div class="stock-num">${p.stock} / ${p.max}</div><div class="stock-bar"><div class="stock-fill" style="width:${pct}%;background:${barColor}"></div></div></td>
+      <td><span class="badge ${status}">${status.toUpperCase()}</span></td>
+      <td><div class="action-btns"><button class="act-btn" onclick="restock(${p.id})">Restock</button><button class="act-btn" onclick="editProduct(${p.id})">Edit</button><button class="act-btn danger" onclick="removeProduct(${p.id})">Remove</button></div></td>
+    </tr>`;
+  }).join('');
+}
+
+function restock(id) {
+  const p = products.find(x=>x.id===id);
+  const amt = prompt(`Add units to ${p.name}:`);
+  if (!amt) return;
+  p.stock = Math.min(p.stock + parseInt(amt), p.max);
+  saveProducts(); renderTable(); updateStats();
+}
+
+function editProduct(id) {
+  const p = products.find(x=>x.id===id);
+  if (p) toggleAddForm(true, p);
+}
+
+function removeProduct(id) {
+  if (confirm(`Remove product?`)) {
+    products = products.filter(x=>x.id!==id);
+    saveProducts(); renderTable(); updateStats();
+  }
+}
+
+async function createProductOnServer(payload) {
+  try {
+    const response = await fetch(`${API_BASE}?action=products`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    return response.json();
+  } catch (error) { return null; }
+}
+
+function toggleAddForm(show, product = null) {
+  const form = document.getElementById('addProductForm');
+  editingProductId = product ? product.id : null;
+  form.style.display = show ? 'block' : 'none';
+  if (show && product) {
+    document.getElementById('newProductName').value = product.name;
+    document.getElementById('newProductPrice').value = product.price;
+    document.getElementById('newProductStock').value = product.stock;
+    document.getElementById('newProductCategory').value = product.cat;
+  }
+}
+
+async function submitAddProduct() {
+  const payload = {
+    name: document.getElementById('newProductName').value,
+    price: parseFloat(document.getElementById('newProductPrice').value),
+    stock: parseInt(document.getElementById('newProductStock').value),
+    category: document.getElementById('newProductCategory').value
+  };
+  if (editingProductId) payload.id = editingProductId;
+  const res = await createProductOnServer(payload);
+  if (res && res.success) {
+    await initProducts();
+    toggleAddForm(false);
+  } else {
+    alert("Error saving to database.");
+  }
+}
+
+initProducts();
+
+// Translation logic
+const translations = {
+  en: { navDashboard: '📊 Dashboard', navInventory: '📦 Inventory', navNewOrder: '＋ New Order', navDelivery: '🚚 Delivery', navLogout: '⏻ Logout' },
+  kh: { navDashboard: '📊 ផ្ទាំងគ្រប់គ្រង', navInventory: '📦 ស្តុក', navNewOrder: '＋ បញ្ជាទិញថ្មី', navDelivery: '🚚 ដឹកជញ្ជូន', navLogout: '⏻ ចាកចេញ' }
+};
+
+function applyLanguage(lang) {
+  const dict = translations[lang] || translations.en;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key]) el.textContent = dict[key];
+  });
+  localStorage.setItem('milkLang', lang);
+}
+
+document.querySelectorAll('.lang-btn').forEach(btn => btn.addEventListener('click', () => applyLanguage(btn.dataset.lang)));
+applyLanguage(localStorage.getItem('milkLang') || 'en');
+</script>
+
+<!-- External Script and Safe Guarded Function Call -->
+<script src="js/roleControl.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof enforceAdminOnly === 'function') {
+      enforceAdminOnly();
+    }
+  });
+</script>
+</body>
+</html>

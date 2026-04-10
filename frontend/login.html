@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Milk App • Login</title>
+  <link href="assets/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <header class="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-4">
+    <div class="container-fluid">
+      <h1 class="navbar-brand mb-0 h4 fw-bold text-primary">Milk App</h1>
+      <div class="nav-right">
+        <a class="nav-link d-inline-block me-3 fw-semibold" href="login.html">Login</a>
+        <a class="btn btn-outline-primary btn-sm" href="register.html">Register</a>
+      </div>
+    </div>
+  </header>
+
+  
+  <main class="d-flex align-items-center justify-content-center" style="min-height: 90vh;">
+    <section class="w-100" style="max-width: 420px;">
+      <div class="card border-0 shadow-lg">
+        <div class="card-body p-4 p-md-5">
+          <form id="loginForm">
+            <h2 class="text-center mb-4 fw-bold">Login</h2>
+
+            <div class="mb-3">
+              <label for="loginUser" class="form-label small fw-bold text-muted">Username</label>
+              <input type="text" id="loginUser" class="form-control form-control-lg" placeholder="Enter username" autocomplete="username" required>
+            </div>
+
+            <div class="mb-4">
+              <label for="loginPass" class="form-label small fw-bold text-muted">Password</label>
+              <input type="password" id="loginPass" class="form-control form-control-lg" placeholder="••••••••" autocomplete="current-password" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100 mb-3 shadow-sm">Login</button>
+
+            <p class="text-center mb-0 small text-muted">
+              Don't have an account? <a href="register.html" class="text-decoration-none fw-bold">Register here</a>
+            </p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/dist/auth.js?v=2"></script>
+</body>
+</html>
