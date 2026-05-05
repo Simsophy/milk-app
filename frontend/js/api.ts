@@ -7,7 +7,13 @@ import {
     QRVerifyResponse,
     PaymentConfirmResponse,
     TransactionStatusResponse,
-    TransactionsResponse
+    TransactionsResponse,
+    CartResponse,
+    OrderResponse,
+    OrdersResponse,
+    StockLogsResponse,
+    SuppliersResponse,
+    StockAlertsResponse
 } from './types.js';
 
 const API_BASE = '/routes/api.php';
@@ -77,3 +83,112 @@ export const getTransactionStatus = (transactionId: string) =>
 
 export const getMyTransactions = () =>
     requestJson<TransactionsResponse>('my-transactions');
+
+// POS - CART MANAGEMENT
+export const getCart = () =>
+    requestJson<CartResponse>('get-cart');
+
+export const addToCart = (productId: number, quantity: number) =>
+    requestJson<CartResponse>('add-to-cart', 'POST', {
+        product_id: productId,
+        quantity
+    });
+
+export const updateCartItem = (productId: number, quantity: number) =>
+    requestJson<CartResponse>('update-cart-item', 'POST', {
+        product_id: productId,
+        quantity
+    });
+
+export const removeFromCart = (productId: number) =>
+    requestJson<CartResponse>('remove-from-cart', 'POST', {
+        product_id: productId
+    });
+
+export const clearCart = () =>
+    requestJson<CartResponse>('clear-cart', 'POST', {});
+
+// POS - ORDER MANAGEMENT
+export const createOrder = (notes?: string) =>
+    requestJson<OrderResponse>('create-order', 'POST', {
+        notes
+    });
+
+export const getOrders = () =>
+    requestJson<OrdersResponse>('get-orders');
+
+export const getOrderById = (orderId: number) =>
+    requestJson<OrderResponse>('get-order', 'POST', {
+        order_id: orderId
+    });
+
+export const updateOrderStatus = (orderId: number, status: string) =>
+    requestJson<OrderResponse>('update-order-status', 'POST', {
+        order_id: orderId,
+        status
+    });
+
+// INVENTORY - STOCK INFORMATION
+export const getInventory = () =>
+    requestJson<ProductApiResponse>('get-inventory');
+
+export const checkStockAlerts = () =>
+    requestJson<StockAlertsResponse>('check-stock-alerts');
+
+export const getProductStock = (productId: number) =>
+    requestJson<any>('get-product-stock', 'POST', {
+        product_id: productId
+    });
+
+// STOCK TRACKING
+export const stockIn = (productId: number, quantity: number, supplierId?: number, notes?: string) =>
+    requestJson<any>('stock-in', 'POST', {
+        product_id: productId,
+        quantity,
+        supplier_id: supplierId,
+        notes
+    });
+
+export const stockOut = (productId: number, quantity: number, notes?: string) =>
+    requestJson<any>('stock-out', 'POST', {
+        product_id: productId,
+        quantity,
+        notes
+    });
+
+export const getStockLogs = (productId?: number, limit: number = 50) =>
+    requestJson<StockLogsResponse>('get-stock-logs', 'POST', {
+        product_id: productId,
+        limit
+    });
+
+export const updateProductStock = (productId: number, quantity: number, notes?: string) =>
+    requestJson<any>('update-product-stock', 'POST', {
+        product_id: productId,
+        quantity,
+        notes
+    });
+
+// SUPPLIERS
+export const getSuppliers = () =>
+    requestJson<SuppliersResponse>('get-suppliers');
+
+export const createSupplier = (name: string, contactPerson?: string, phone?: string, email?: string, address?: string) =>
+    requestJson<any>('create-supplier', 'POST', {
+        name,
+        contact_person: contactPerson,
+        phone,
+        email,
+        address
+    });
+
+export const updateSupplier = (supplierId: number, updates: any) =>
+    requestJson<any>('update-supplier', 'POST', {
+        supplier_id: supplierId,
+        ...updates
+    });
+
+export const deleteSupplier = (supplierId: number) =>
+    requestJson<any>('delete-supplier', 'POST', {
+        supplier_id: supplierId
+    });

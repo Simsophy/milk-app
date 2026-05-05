@@ -108,3 +108,119 @@ export interface TransactionsResponse {
     message?: string;
     data: BakongTransaction[];
 }
+
+// POS System Types
+
+export interface CartItem {
+    product_id: number;
+    quantity: number;
+    unit_price: number;
+    subtotal: number;
+}
+
+export interface Cart {
+    items: CartItem[];
+    total_amount: number;
+}
+
+export interface CartResponse {
+    success: boolean;
+    message?: string;
+    data: Cart;
+}
+
+export interface OrderItem {
+    id: number;
+    order_id: number;
+    product_id: number;
+    quantity: number;
+    unit_price: number;
+    subtotal: number;
+    created_at: string;
+}
+
+export interface Order {
+    id: number;
+    user_id?: number;
+    total_amount: number;
+    status: 'pending' | 'paid' | 'completed' | 'cancelled';
+    payment_method?: string;
+    bakong_transaction_id?: number;
+    notes?: string;
+    items?: OrderItem[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface OrderResponse {
+    success: boolean;
+    message?: string;
+    data: Order;
+}
+
+export interface OrdersResponse {
+    success: boolean;
+    message?: string;
+    data: Order[];
+}
+
+export interface StockLog {
+    id: number;
+    product_id: number;
+    type: 'IN' | 'OUT';
+    quantity: number;
+    reference_type?: string;
+    reference_id?: number;
+    notes?: string;
+    created_by?: number;
+    created_at: string;
+}
+
+export interface StockLogsResponse {
+    success: boolean;
+    message?: string;
+    data: StockLog[];
+}
+
+export interface Supplier {
+    id: number;
+    name: string;
+    contact_person?: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+    notes?: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface SuppliersResponse {
+    success: boolean;
+    message?: string;
+    data: Supplier[];
+}
+
+export interface ProductStockSettings {
+    id: number;
+    product_id: number;
+    min_stock_level: number;
+    reorder_quantity: number;
+    default_supplier_id?: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface StockAlert {
+    product_id: number;
+    product_name: string;
+    current_stock: number;
+    min_stock_level: number;
+    is_low_stock: boolean;
+    reorder_quantity: number;
+}
+
+export interface StockAlertsResponse {
+    success: boolean;
+    message?: string;
+    data: StockAlert[];
+}

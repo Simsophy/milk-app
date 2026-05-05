@@ -43,6 +43,9 @@ session_start();
 require_once __DIR__ . '/../controllers/taskController.php';
 require_once __DIR__ . '/../config/db.php';           // ✅ already correct
 require_once __DIR__ . '/../controllers/authController.php'; // ✅
+require_once __DIR__ . '/../controllers/posController.php'; // ✅
+require_once __DIR__ . '/../controllers/inventoryController.php'; // ✅
+require_once __DIR__ . '/../controllers/supplierController.php'; // ✅
 // CORS headers
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $allowedOrigins = [
@@ -95,6 +98,9 @@ function requireLogin(): void {
 $db = (new Database())->connect();
 $authController = new AuthController($db);
 $taskController  = new TaskController($db);
+$posController = new POSController($db);
+$inventoryController = new InventoryController($db);
+$supplierController = new SupplierController($db);
 
 // Route handling
 $action = $_GET['action'] ?? '';
@@ -146,7 +152,146 @@ switch ($action) {
         jsonResponse(['success'=>false,'message'=>'Method not allowed'],405);
         break;
 
+    // POS - Cart Management
+    case 'get-cart':
+        requireLogin();
+        jsonResponse($posController->getCart());
+        break;
 
+    case 'add-to-cart':
+        requireLogin();
+        if ($method !== 'POST') jsonResponse(['success'=>false,'message'=>'Method not allowed'],405);
+        jsonResponse($posController->addToCart($payload));
+        break;
+
+    case 'update-cart-item':
+        requireLogin();
+        if ($method !== 'POST') jsonResponse(['success'=>false,'message'=>'Method not allowed'],405);
+        jsonResponse($posController->updateCartItem($payload));
+        break;
+
+    case 'remove-from-cart':
+        requireLogin();
+        if ($method !== 'POST') jsonResponse(['success'=>false,'message'=>'Method not allowed'],405);
+        jsonResponse($posController->removeFromCart($payload));
+        break;
+
+    case 'clear-cart':
+        requireLogin();
+        if ($method !== 'POST') jsonResponse(['success'=>false,'message'=>'Method not allowed'],405);
+        jsonResponse($posController->clearCart());
+        break;
+
+    // POS - Order Management
+    case 'create-order':
+        requireLogin();
+        if ($method !== 'POST') jsonResponse(['success'=>false,'message'=>'Method not allowed'],405);
+        jsonResponse($posController->createOrder($payload));
+        break;
+
+    case 'get-orders':
+        requireLogin();
+        jsonResponse($posController->getOrders());
+        break;
+
+    case 'get-order':
+        requireLogin();
+        if ($method !== 'POST') jsonResponse(['success'=>false,'message'=>'Method not allowed'],405);
+        jsonResponse($posController->getOrderById($payload));
+        break;
+
+    case 'update-order-status':
+        requireLogin();
+        if ($method !== 'POST') jsonResponse(['success'=>false,'message'=>'Method not allowed'],405);
+        jsonResponse($posController->updateOrderStatus($payload));
+        break;
+
+    // Inventory Management
+    case 'get-inventory':
+        requireLogin();
+        jsonResponse($inventoryController->getInventory());
+        break;
+
+    case 'check-stock-alerts':
+        requireLogin();
+        jsonResponse($inventoryController->checkStockAlerts());
+        break;
+
+    case 'get-product-stock':
+        requireLogin();
+        if ($method !== 'POST') jsonResponse(['success'=>false,'message'=>'Method not allowed'],405);
+        jsonResponse($inventoryController->getProductStock($payload));
+        break;
+
+    // Stock Tracking
+    case 'stock-in':
+        requireLogin();
+        if ($method !== 'POST') jsonResponse(['success'=>false,'message'=>'Method not allowed'],405);
+        if (!isset($_SESSION['user']['role']) || $_SESSION['user']['role'] !== 'admin') {
+            jsonResponse(['success'=>false,'message'=>'Forbidden - admin only'],403);
+        }
+        jsonResponse($inventoryController->stockIn($payload));
+        break;
+
+    case 'stock-out':
+        requireLogin();
+        if ($method !== 'POST') jsonResponse(['success'=>false,'message'=>'Method not allowed'],405);
+        if (!isset($_SESSION['user']['role']) || $_SESSION['user']['role'] !== 'admin') {
+            jsonResponse(['success'=>false,'message'=>'Forbidden - admin only'],403);
+        }
+        jsonResponse($inventoryController->stockOut($payload));
+        break;
+
+    case 'get-stock-logs':
+        requireLogin();
+        if ($method !== 'POST') jsonResponse(['success'=>false,'message'=>'Method not allowed'],405);
+        if (!isset($_SESSION['user']['role']) || $_SESSION['user']['role'] !== 'admin') {
+            jsonResponse(['success'=>false,'message'=>'Forbidden - admin only'],403);
+        }
+        jsonResponse($inventoryController->getStockLogs($payload));
+        break;
+
+    case 'update-product-stock':
+        requireLogin();
+        if ($method !== 'POST') jsonResponse(['success'=>false,'message'=>'Method not allowed'],405);
+        if (!isset($_SESSION['user']['role']) || $_SESSION['user']['role'] !== 'admin') {
+            jsonResponse(['success'=>false,'message'=>'Forbidden - admin only'],403);
+        }
+        jsonResponse($inventoryController->updateProductStock($payload));
+        break;
+
+    // Supplier Management
+    case 'get-suppliers':
+        requireLogin();
+        jsonResponse($supplierController->getSuppliers());
+        break;
+
+    case 'create-supplier':
+        requireLogin();
+        if ($method !== 'POST') jsonResponse(['success'=>false,'message'=>'Method not allowed'],405);
+        if (!isset($_SESSION['user']['role']) || $_SESSION['user']['role'] !== 'admin') {
+            jsonResponse(['success'=>false,'message'=>'Forbidden - admin only'],403);
+        }
+        jsonResponse($supplierController->createSupplier($payload));
+        break;
+
+    case 'update-supplier':
+        requireLogin();
+        if ($method !== 'POST') jsonResponse(['success'=>false,'message'=>'Method not allowed'],405);
+        if (!isset($_SESSION['user']['role']) || $_SESSION['user']['role'] !== 'admin') {
+            jsonResponse(['success'=>false,'message'=>'Forbidden - admin only'],403);
+        }
+        jsonResponse($supplierController->updateSupplier($payload));
+        break;
+
+    case 'delete-supplier':
+        requireLogin();
+        if ($method !== 'POST') jsonResponse(['success'=>false,'message'=>'Method not allowed'],405);
+        if (!isset($_SESSION['user']['role']) || $_SESSION['user']['role'] !== 'admin') {
+            jsonResponse(['success'=>false,'message'=>'Forbidden - admin only'],403);
+        }
+        jsonResponse($supplierController->deleteSupplier($payload));
+        break;
 
     default:
         jsonResponse([
